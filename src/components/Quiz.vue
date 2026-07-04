@@ -95,13 +95,15 @@ const QUESTIONS = [
 ];
 
 import { Draggable } from "gsap/Draggable";
+import { SplitText } from "gsap/SplitText";
 import { onMounted, ref } from "vue";
-import { DoubleSide } from "three";
-gsap.registerPlugin(Draggable);
 
-let resetCardTween: gsap.core.Tween;
-let isDragging = false;
+gsap.registerPlugin(Draggable);
+gsap.registerPlugin(SplitText);
+
 const answersEls = ref<HTMLElement[]>([]);
+const questionEls = ref<HTMLElement[]>([]);
+const activeQuestionIndex = ref(0);
 
 function pointInRectangle(
   px: number,
@@ -123,80 +125,219 @@ function pointInRectangle(
   return false;
 }
 
-onMounted(() => {
-  const questions = document.querySelectorAll(".question");
-  const questionEl = questions[questions.length - 1];
-
-  Draggable.create(questionEl, {
-    bounds: document.querySelector(".quiz"),
-    edgeResistance: 0.5,
-    onDrag: function (e) {
-      const { x, y } = e;
-
-      answersEls.value.forEach((answerEl) => {
-        const BCR = answerEl.getBoundingClientRect();
-
-        // Is the pointer within answer BCR?
-        const pointerHitTest = pointInRectangle(
-          x,
-          y,
-          BCR.x,
-          BCR.y,
-          BCR.width,
-          BCR.height,
-        );
-
-        // Check that at least 60% of the dragged el is within answer
-        const cardHitboxAreaThresholdTest = this.hitTest(answerEl, "60%");
-
-        answerEl.classList.toggle(
-          "highlight",
-          pointerHitTest && cardHitboxAreaThresholdTest,
-        );
-      });
-
-      // Update card rotation values relatively to its position within quiz grid
-      const quizBCR = document.querySelector(".quiz")!.getBoundingClientRect();
-
-      const relX = gsap.utils.mapRange(
-        quizBCR.left,
-        quizBCR.right,
-        -1,
-        1,
-        gsap.utils.clamp(quizBCR.left, quizBCR.right, x),
-      );
-
-      const relY = gsap.utils.mapRange(
-        quizBCR.top,
-        quizBCR.bottom,
-        1,
-        -1,
-        gsap.utils.clamp(quizBCR.top, quizBCR.bottom, y),
-      );
-
-      gsap.set(questionEl, {
-        rotateZ: relX * 15,
-        rotateX: relY * 15,
-      });
-    },
-    onDragStart: () => {
-      isDragging = true;
-
-      resetCardTween?.kill();
-    },
-    onDragEnd: function () {
-      isDragging = false;
-
-      resetCardTween?.kill();
-      resetCardTween = gsap.to(questionEl, {
-        x: 0,
-        y: 0,
-        rotateZ: 0,
-        rotateX: 0,
-        ease: "elastic.out(1, 0.75)",
-      });
+const CARD_INITIAL_ROTATION = 10; //deg
+const CARD_ROTATION_INC = -10;
+const setCardsStyle = (animate: boolean) => {
+  const TL = gsap.timeline({
+    defaults: {
+      duration: animate ? 0.5 : 0,
+      ease: "elastic.out(1, 0.75)",
     },
   });
+
+  questionEls.value.forEach((el, i) => {
+    const index = i - activeQuestionIndex.value;
+
+    if (index >= 0) {
+      const backgroundColor = (() => {
+        if (index === 0) {
+          return "#fff";
+        } else if (index === 1) {
+          return "#efece4";
+        }
+
+        return "#f1ecdf";
+      })();
+
+      TL.to(
+        el,
+        {
+          rotateZ: index * CARD_ROTATION_INC + CARD_INITIAL_ROTATION,
+          scale: gsap.utils.mapRange(0, QUESTIONS.length - 1, 1, 0.75, index),
+          backgroundColor,
+        },
+        0,
+      );
+
+      const cardTitle = el.querySelector(".question__title");
+      const cardPicture = el.querySelector(".question__picture-container");
+
+      if (index === 0) {
+        TL.to(
+          cardPicture,
+          {
+            scale: 1,
+            opacity: 1,
+          },
+          0,
+        );
+
+        let split = SplitText.create(cardTitle, {
+          type: "words",
+        });
+        TL.set(
+          cardTitle,
+          {
+            opacity: 1,
+          },
+          0,
+        );
+        TL.from(
+          split.words,
+          {
+            y: 10,
+            stagger: 0.05,
+            opacity: 0,
+            ease: "elastic.out(1, 0.75)",
+          },
+          0,
+        );
+      } else {
+        TL.set(
+          cardTitle,
+          {
+            opacity: 0,
+          },
+          0,
+        );
+
+        TL.set(
+          cardPicture,
+          {
+            opacity: 0,
+            scale: 0.75,
+          },
+          0,
+        );
+      }
+    }
+  });
+};
+
+const useDraggableCard = (draggableEl: HTMLElement) => {
+  let isDragging = false;
+  let resetCardTween: gsap.core.Tween;
+  let activeAnswer: HTMLElement | null = null;
+
+  const hitTestAnswer = (x: number, y: number, target: HTMLElement) => {
+    const BCR = target.getBoundingClientRect();
+
+    // Is the pointer within answer BCR?
+    const pointerHitTest = pointInRectangle(
+      x,
+      y,
+      BCR.x,
+      BCR.y,
+      BCR.width,
+      BCR.height,
+    );
+
+    // Check that at least 60% of the dragged el is within answer
+    const cardHitboxAreaThresholdTest = draggable.hitTest(target, "60%");
+
+    if (pointerHitTest && cardHitboxAreaThresholdTest) {
+      activeAnswer = target;
+      target.classList.add("highlight");
+    } else {
+      target.classList.remove("highlight");
+    }
+  };
+
+  const onDragUpdateCardRotation = (x: number, y: number) => {
+    // Update card rotation values relatively to its position within quiz grid
+    const quizBCR = document.querySelector(".quiz")!.getBoundingClientRect();
+
+    const relX = gsap.utils.mapRange(
+      quizBCR.left,
+      quizBCR.right,
+      -1,
+      1,
+      gsap.utils.clamp(quizBCR.left, quizBCR.right, x),
+    );
+
+    const relY = gsap.utils.mapRange(
+      quizBCR.top,
+      quizBCR.bottom,
+      1,
+      -1,
+      gsap.utils.clamp(quizBCR.top, quizBCR.bottom, y),
+    );
+
+    gsap.set(draggableEl, {
+      rotateZ: CARD_INITIAL_ROTATION + relX * 15,
+      rotateX: relY * 15,
+    });
+  };
+
+  const onDragStart = () => {
+    isDragging = true;
+
+    resetCardTween?.kill();
+  };
+
+  const onDrag = (e: PointerEvent) => {
+    const { x, y } = e;
+
+    activeAnswer = null;
+    answersEls.value.forEach((answerEl) => hitTestAnswer(x, y, answerEl));
+
+    onDragUpdateCardRotation(x, y);
+  };
+
+  const resetCard = () => {
+    resetCardTween?.kill();
+    resetCardTween = gsap.to(draggableEl, {
+      x: 0,
+      y: 0,
+      rotateZ: CARD_INITIAL_ROTATION,
+      rotateX: 0,
+      ease: "elastic.out(1, 0.75)",
+    });
+  };
+
+  const validateAnswer = () => {
+    gsap.to(draggableEl, {
+      scale: 0,
+      ease: "back.in(1.7)",
+      duration: 0.25,
+    });
+
+    // Activate next card
+    if (activeQuestionIndex.value < QUESTIONS.length - 1) {
+      activeQuestionIndex.value++;
+      useDraggableCard(questionEls.value[activeQuestionIndex.value]);
+    }
+  };
+
+  const onDragEnd = () => {
+    isDragging = false;
+    if (activeAnswer) {
+      validateAnswer();
+    } else {
+      resetCard();
+    }
+  };
+
+  const [draggable] = Draggable.create(draggableEl, {
+    bounds: document.querySelector(".quiz"),
+    edgeResistance: 0.5,
+    onDrag,
+    onDragStart,
+    onDragEnd,
+  });
+
+  setCardsStyle(activeQuestionIndex.value > 0);
+
+  const dispose = () => {
+    resetCardTween?.kill();
+    draggable.kill();
+  };
+
+  return { draggable, dispose };
+};
+
+onMounted(() => {
+  useDraggableCard(questionEls.value[0]);
 });
 </script>
 
@@ -223,7 +364,21 @@ onMounted(() => {
     </div>
 
     <div class="questions-container">
-      <div v-for="question in QUESTIONS" :key="question.title" class="question">
+      <div
+        v-for="(question, i) in QUESTIONS"
+        :key="question.title"
+        ref="questionEls"
+        :class="[
+          'question',
+          {
+            active: activeQuestionIndex === i,
+          },
+        ]"
+        :style="{
+          '--i': i,
+          zIndex: QUESTIONS.length - i,
+        }"
+      >
         <div class="question__picture-container">
           <img
             :src="question.picture"
@@ -297,6 +452,8 @@ onMounted(() => {
 }
 
 .question {
+  // --question-initial-rotation: 10deg;
+
   display: grid;
   grid-template-rows: auto max-content;
   position: absolute;
@@ -309,6 +466,7 @@ onMounted(() => {
   border: 1px var(--c-stroke) solid;
   background-color: var(--c-surface-default);
   overflow: hidden;
+  // rotate: calc(var(--question-initial-rotation) + -10deg * var(--i));
 }
 
 .question__picture-container {
