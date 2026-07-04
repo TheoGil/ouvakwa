@@ -117,6 +117,25 @@ const questionEls = ref<HTMLElement[]>([]);
 const activeQuestionIndex = ref(0);
 const highlightedAnswer = ref<HTMLElement | null>();
 
+const getClientXY = (e: PointerEvent | TouchEvent) => {
+  if (e.type === "pointermove") {
+    return {
+      x: (e as PointerEvent).x,
+      y: (e as PointerEvent).y,
+    };
+  } else if (e.type === "touchmove" && (e as TouchEvent).targetTouches.length) {
+    return {
+      x: (e as TouchEvent).targetTouches[0].clientX,
+      y: (e as TouchEvent).targetTouches[0].clientY,
+    };
+  }
+
+  return {
+    x: 0,
+    y: 0,
+  };
+};
+
 watch(highlightedAnswer, (newValue, oldValue) => {
   if (oldValue) {
     gsap.killTweensOf(
@@ -192,6 +211,8 @@ const setCardsStyle = (animate: boolean) => {
         {
           rotateZ: index * CARD_ROTATION_INC + CARD_INITIAL_ROTATION,
           scale: gsap.utils.mapRange(0, QUESTIONS.length - 1, 1, 0.75, index),
+          xPercent: -50,
+          yPercent: -50,
           backgroundColor,
         },
         0,
@@ -309,8 +330,8 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
     resetCardTween?.kill();
   };
 
-  const onDrag = (e: PointerEvent) => {
-    const { x, y } = e;
+  const onDrag = (e: PointerEvent | TouchEvent) => {
+    const { x, y } = getClientXY(e);
 
     let hasHit = false;
     answersEls.value.forEach((answerEl) => {
@@ -575,12 +596,9 @@ onMounted(() => {
 }
 
 .question {
-  // --question-initial-rotation: 10deg;
-
   display: grid;
   grid-template-rows: auto max-content;
   position: absolute;
-  translate: -50% -50%;
   z-index: 1;
   aspect-ratio: 2/3;
   width: fluid(150px, 200px);
@@ -589,7 +607,6 @@ onMounted(() => {
   border: 1px var(--c-stroke) solid;
   background-color: var(--c-surface-default);
   overflow: hidden;
-  // rotate: calc(var(--question-initial-rotation) + -10deg * var(--i));
 }
 
 .question__picture-container {
