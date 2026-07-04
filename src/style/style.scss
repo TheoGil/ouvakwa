@@ -17,6 +17,9 @@ body {
   display: grid;
   place-items: center;
   height: 100vh;
-  padding: 20px;
   box-sizing: border-box;
+
+  @media (min-width: 1000px) {
+    padding: 20px;
+  }
 }

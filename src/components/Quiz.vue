@@ -476,11 +476,15 @@ onMounted(() => {
 .quiz {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, 40vh);
+  grid-template-rows: repeat(2, 50vh);
   width: 100%;
   max-width: 1280px;
   background-color: var(--c-surface-accent);
   border: 1px var(--c-stroke) solid;
+
+  @media (min-width: 1000px) {
+    grid-template-rows: repeat(2, 40vh);
+  }
 }
 
 .quiz__answer {
