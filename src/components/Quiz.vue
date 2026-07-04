@@ -107,6 +107,7 @@ const QUESTIONS = [
 import { Draggable } from "gsap/Draggable";
 import { SplitText } from "gsap/SplitText";
 import { onMounted, ref } from "vue";
+import { audio } from "../audio";
 
 gsap.registerPlugin(Draggable);
 gsap.registerPlugin(SplitText);
@@ -249,6 +250,8 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
       activeAnswer = target;
 
       if (!target.classList.contains("highlight")) {
+        audio.play("slide");
+
         gsap.killTweensOf(
           target.querySelector(".quiz__answer__picture-container"),
         );
@@ -317,6 +320,8 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
   };
 
   const resetCard = () => {
+    audio.play("shove");
+
     resetCardTween?.kill();
     resetCardTween = gsap.to(draggableEl, {
       x: 0,
@@ -328,6 +333,8 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
   };
 
   const validateAnswer = () => {
+    audio.play("shove");
+
     gsap.to(draggableEl, {
       scale: 0,
       ease: "back.in(1.7)",
@@ -356,6 +363,9 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
     onDrag,
     onDragStart,
     onDragEnd,
+    onClick: () => {
+      audio.play("slide");
+    },
   });
 
   setCardsStyle(activeQuestionIndex.value > 0);
