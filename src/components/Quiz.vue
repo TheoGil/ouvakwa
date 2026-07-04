@@ -456,6 +456,7 @@ onMounted(() => {
 
 .quiz__answer {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: fluid(10px, 20px);
   padding-block: fluid(10px, 40px);
@@ -465,14 +466,33 @@ onMounted(() => {
   user-select: none;
 
   &:nth-child(even) {
-    flex-direction: row-reverse;
-    text-align: end;
     border-left: 1px var(--c-stroke) solid;
+
+    @media (min-width: 1000px) {
+      flex-direction: row-reverse;
+      text-align: end;
+    }
   }
 
   &:nth-child(3),
   &:nth-child(4) {
     border-top: 1px var(--c-stroke) solid;
+
+    @media (max-width: 650px) {
+      justify-content: end;
+    }
+  }
+
+  @media (max-width: 1000px) {
+    text-align: center;
+  }
+
+  @media (max-width: 1000px) and (min-width: 650px) {
+    justify-content: center;
+  }
+
+  @media (min-width: 1000px) {
+    flex-direction: row;
   }
 
   &.highlight {
@@ -506,7 +526,7 @@ onMounted(() => {
 }
 
 .quiz__answer__picture-container {
-  width: fluid(35px, 150px);
+  width: fluid(80px, 150px);
 
   .conteneur-vert &,
   .conteneur-jaune & {
@@ -536,7 +556,7 @@ onMounted(() => {
 .quiz__answer__title {
   display: block;
   line-height: 1;
-  font-size: fluid(14px, 50px);
+  font-size: fluid(20px, 50px);
 }
 
 .questions-container {
@@ -555,7 +575,7 @@ onMounted(() => {
   translate: -50% -50%;
   z-index: 1;
   aspect-ratio: 2/3;
-  width: fluid(35px, 200px);
+  width: fluid(150px, 200px);
   height: auto;
   border-radius: 8px;
   border: 1px var(--c-stroke) solid;
