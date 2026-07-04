@@ -1,12 +1,16 @@
 // @use "./functions";
 
 :root {
+  --ff-alt: "Poppins", sans-serif;
+  --ff-mono: "Space Mono", monospace;
+  --c-surface-default: #ffffff;
   --c-surface-accent: #f5f3ed;
   --c-stroke: #c9c7bb;
 }
 
 body {
   margin: 0;
+  overflow: hidden;
 }
 
 #app {
@@ -15,10 +19,4 @@ body {
   height: 100vh;
   padding: 20px;
   box-sizing: border-box;
-}
-
-.ff-alt {
-  font-family: "Poppins", sans-serif;
-  font-weight: 800;
-  font-style: normal;
 }
