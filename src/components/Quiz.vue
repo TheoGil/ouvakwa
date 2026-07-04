@@ -106,7 +106,7 @@ const QUESTIONS = [
 
 import { Draggable } from "gsap/Draggable";
 import { SplitText } from "gsap/SplitText";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { audio } from "../audio";
 
 gsap.registerPlugin(Draggable);
@@ -115,6 +115,33 @@ gsap.registerPlugin(SplitText);
 const answersEls = ref<HTMLElement[]>([]);
 const questionEls = ref<HTMLElement[]>([]);
 const activeQuestionIndex = ref(0);
+const highlightedAnswer = ref<HTMLElement | null>();
+
+watch(highlightedAnswer, (newValue, oldValue) => {
+  if (oldValue) {
+    gsap.killTweensOf(
+      oldValue.querySelector(".quiz__answer__picture-container"),
+    );
+    gsap.to(oldValue.querySelector(".quiz__answer__picture-container"), {
+      scale: 1,
+      ease: "elastic.out(1, 0.75)",
+    });
+    oldValue.classList.remove("highlight");
+  }
+
+  if (newValue) {
+    newValue.classList.add("highlight");
+    audio.play("slide");
+    gsap.killTweensOf(
+      newValue.querySelector(".quiz__answer__picture-container"),
+    );
+    gsap.to(newValue.querySelector(".quiz__answer__picture-container"), {
+      scale: 1.15,
+      ease: "elastic.out(1, 0.3)",
+      duration: 1.25,
+    });
+  }
+});
 
 function pointInRectangle(
   px: number,
@@ -228,7 +255,6 @@ const setCardsStyle = (animate: boolean) => {
 const useDraggableCard = (draggableEl: HTMLElement) => {
   let isDragging = false;
   let resetCardTween: gsap.core.Tween;
-  let activeAnswer: HTMLElement | null = null;
 
   const hitTestAnswer = (x: number, y: number, target: HTMLElement) => {
     const BCR = target.getBoundingClientRect();
@@ -247,34 +273,7 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
     const cardHitboxAreaThresholdTest = draggable.hitTest(target, "60%");
 
     if (pointerHitTest && cardHitboxAreaThresholdTest) {
-      activeAnswer = target;
-
-      if (!target.classList.contains("highlight")) {
-        audio.play("slide");
-
-        gsap.killTweensOf(
-          target.querySelector(".quiz__answer__picture-container"),
-        );
-        gsap.to(target.querySelector(".quiz__answer__picture-container"), {
-          scale: 1.15,
-          ease: "elastic.out(1, 0.3)",
-          duration: 1.25,
-        });
-      }
-
-      target.classList.add("highlight");
-    } else {
-      if (target.classList.contains("highlight")) {
-        gsap.killTweensOf(
-          target.querySelector(".quiz__answer__picture-container"),
-        );
-        gsap.to(target.querySelector(".quiz__answer__picture-container"), {
-          scale: 1,
-          ease: "elastic.out(1, 0.75)",
-        });
-      }
-
-      target.classList.remove("highlight");
+      highlightedAnswer.value = target;
     }
   };
 
@@ -313,7 +312,6 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
   const onDrag = (e: PointerEvent) => {
     const { x, y } = e;
 
-    activeAnswer = null;
     answersEls.value.forEach((answerEl) => hitTestAnswer(x, y, answerEl));
 
     onDragUpdateCardRotation(x, y);
@@ -335,6 +333,8 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
   const validateAnswer = () => {
     audio.play("shove");
 
+    highlightedAnswer.value = null;
+
     gsap.to(draggableEl, {
       scale: 0,
       ease: "back.in(1.7)",
@@ -350,7 +350,7 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
 
   const onDragEnd = () => {
     isDragging = false;
-    if (activeAnswer) {
+    if (highlightedAnswer.value) {
       validateAnswer();
     } else {
       resetCard();
