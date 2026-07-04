@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import CONTENEUR_VERT_PICTURE from "../assets/quiz/answers/conteneur-vert.webp";
+import CONTENEUR_VERT_PICTURE_HIGHLIGHT from "../assets/quiz/answers/conteneur-vert-highlight.webp";
 import CONTENEUR_JAUNE_PICTURE from "../assets/quiz/answers/conteneur-jaune.webp";
+import CONTENEUR_JAUNE_PICTURE_HIGHLIGHT from "../assets/quiz/answers/conteneur-jaune-highlight.webp";
 import SAC_BLEU_PICTURE from "../assets/quiz/answers/sac-bleu.webp";
+import SAC_BLEU_PICTURE_HIGHLIGHT from "../assets/quiz/answers/sac-bleu-highlight.webp";
 import SAC_JAUNE_PICTURE from "../assets/quiz/answers/sac-jaune.webp";
+import SAC_JAUNE_PICTURE_HIGHLIGHT from "../assets/quiz/answers/sac-jaune-highlight.webp";
+
 import PLASTIC_BAG_PICTURE from "../assets/quiz/items/plastic-bag.webp?url";
 import CANDY_WRAPPER_PICTURE from "../assets/quiz/items/candy-wrapper.webp?url";
 import CHICKEN_BONES_PICTURE from "../assets/quiz/items/chicken-bones.webp?url";
 import COFFEE_PICTURE from "../assets/quiz/items/coffee.webp?url";
 import TOILET_PAPER_PICTURE from "../assets/quiz/items/toilet-paper.webp?url";
+
 import gsap from "gsap";
 
 // Answers possible values
@@ -25,24 +31,28 @@ const ANSWERS_DISPLAY = [
     color: "#285c47",
     value: ANSWERS.CONTENEUR_VERT,
     picture: CONTENEUR_VERT_PICTURE,
+    pictureHighlight: CONTENEUR_VERT_PICTURE_HIGHLIGHT,
   },
   {
     title: "Conteneur<br/> jaune",
     color: "#917122",
     value: ANSWERS.CONTENEUR_JAUNE,
     picture: CONTENEUR_JAUNE_PICTURE,
+    pictureHighlight: CONTENEUR_JAUNE_PICTURE_HIGHLIGHT,
   },
   {
     title: "Sac<br/> jaune",
     color: "#917122",
     value: ANSWERS.SAC_JAUNE,
     picture: SAC_JAUNE_PICTURE,
+    pictureHighlight: SAC_JAUNE_PICTURE_HIGHLIGHT,
   },
   {
     title: "Sac<br/> bleu",
     color: "#106bac",
     value: ANSWERS.SAC_BLEU,
     picture: SAC_BLEU_PICTURE,
+    pictureHighlight: SAC_BLEU_PICTURE_HIGHLIGHT,
   },
 ];
 
@@ -237,8 +247,30 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
 
     if (pointerHitTest && cardHitboxAreaThresholdTest) {
       activeAnswer = target;
+
+      if (!target.classList.contains("highlight")) {
+        gsap.killTweensOf(
+          target.querySelector(".quiz__answer__picture-container"),
+        );
+        gsap.to(target.querySelector(".quiz__answer__picture-container"), {
+          scale: 1.15,
+          ease: "elastic.out(1, 0.3)",
+          duration: 1.25,
+        });
+      }
+
       target.classList.add("highlight");
     } else {
+      if (target.classList.contains("highlight")) {
+        gsap.killTweensOf(
+          target.querySelector(".quiz__answer__picture-container"),
+        );
+        gsap.to(target.querySelector(".quiz__answer__picture-container"), {
+          scale: 1,
+          ease: "elastic.out(1, 0.75)",
+        });
+      }
+
       target.classList.remove("highlight");
     }
   };
@@ -346,14 +378,21 @@ onMounted(() => {
     <div
       v-for="answer in ANSWERS_DISPLAY"
       :key="answer.value"
-      class="quiz__answer"
+      :class="['quiz__answer', answer.value]"
       ref="answersEls"
     >
-      <img
-        :src="answer.picture"
-        :alt="answer.title"
-        class="quiz__answer__picture"
-      />
+      <div class="quiz__answer__picture-container">
+        <img
+          :src="answer.picture"
+          :alt="answer.title"
+          class="quiz__answer__picture idle"
+        />
+        <img
+          :src="answer.pictureHighlight"
+          :alt="answer.title"
+          class="quiz__answer__picture highlight"
+        />
+      </div>
       <div
         class="quiz__answer__title"
         v-html="answer.title"
@@ -398,6 +437,7 @@ onMounted(() => {
 .quiz {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, 40vh);
   width: 100%;
   max-width: 1280px;
   background-color: var(--c-surface-accent);
@@ -426,16 +466,61 @@ onMounted(() => {
   }
 
   &.highlight {
-    outline: 5px var(--c-stroke) dashed;
-    outline-offset: 5px;
+    background-image: url(/src/assets/logo.svg);
+    background-size: 50px;
+    animation: bg linear 2.5s infinite;
     background-color: #c9c7bb70;
+    outline: 5px var(--c-stroke) solid;
+    outline-offset: -5px;
+
+    .quiz__answer__picture {
+      &.idle {
+        display: none;
+      }
+
+      &.highlight {
+        display: block;
+      }
+    }
+  }
+}
+
+@keyframes bg {
+  from {
+    background-position: 0px 0px;
+  }
+
+  to {
+    background-position: 50px -50px;
+  }
+}
+
+.quiz__answer__picture-container {
+  width: fluid(35px, 150px);
+
+  .conteneur-vert &,
+  .conteneur-jaune & {
+    translate: 0 -10%;
   }
 }
 
 .quiz__answer__picture {
   display: block;
-  width: fluid(35px, 150px);
-  height: auto;
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+
+  .sac-jaune & {
+    width: 110%;
+  }
+
+  .sac-bleu & {
+    width: 120%;
+  }
+
+  &.highlight {
+    display: none;
+  }
 }
 
 .quiz__answer__title {
