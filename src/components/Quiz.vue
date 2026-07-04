@@ -274,7 +274,10 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
 
     if (pointerHitTest && cardHitboxAreaThresholdTest) {
       highlightedAnswer.value = target;
+      return true;
     }
+
+    return false;
   };
 
   const onDragUpdateCardRotation = (x: number, y: number) => {
@@ -312,7 +315,16 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
   const onDrag = (e: PointerEvent) => {
     const { x, y } = e;
 
-    answersEls.value.forEach((answerEl) => hitTestAnswer(x, y, answerEl));
+    let hasHit = false;
+    answersEls.value.forEach((answerEl) => {
+      const hit = hitTestAnswer(x, y, answerEl);
+      if (!hasHit && hit) {
+        hasHit = true;
+      }
+    });
+    if (!hasHit) {
+      highlightedAnswer.value = null;
+    }
 
     onDragUpdateCardRotation(x, y);
   };
