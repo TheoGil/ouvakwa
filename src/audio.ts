@@ -1,4 +1,4 @@
-import { Howl, Howler } from "howler";
+import { Howl } from "howler";
 
 import shove1 from "./assets/audio/card-shove-1.ogg?url";
 import shove2 from "./assets/audio/card-shove-2.ogg?url";

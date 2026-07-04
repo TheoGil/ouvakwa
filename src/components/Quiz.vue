@@ -253,7 +253,6 @@ const setCardsStyle = (animate: boolean) => {
 };
 
 const useDraggableCard = (draggableEl: HTMLElement) => {
-  let isDragging = false;
   let resetCardTween: gsap.core.Tween;
 
   const hitTestAnswer = (x: number, y: number, target: HTMLElement) => {
@@ -307,8 +306,6 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
   };
 
   const onDragStart = () => {
-    isDragging = true;
-
     resetCardTween?.kill();
   };
 
@@ -361,7 +358,6 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
   };
 
   const onDragEnd = () => {
-    isDragging = false;
     if (highlightedAnswer.value) {
       validateAnswer();
     } else {
