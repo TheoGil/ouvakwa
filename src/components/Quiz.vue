@@ -9,11 +9,18 @@ import SAC_JAUNE_PICTURE from "../assets/quiz/answers/sac-jaune.webp";
 import SAC_JAUNE_PICTURE_HIGHLIGHT from "../assets/quiz/answers/sac-jaune-highlight.webp";
 
 import PLASTIC_BAG_PICTURE from "../assets/quiz/items/plastic-bag.webp?url";
-import CANDY_WRAPPER_PICTURE from "../assets/quiz/items/candy-wrapper.webp?url";
+// import CANDY_WRAPPER_PICTURE from "../assets/quiz/items/candy-wrapper.webp?url";
 import CHICKEN_BONES_PICTURE from "../assets/quiz/items/chicken-bones.webp?url";
 import COFFEE_PICTURE from "../assets/quiz/items/coffee.webp?url";
 import TOILET_PAPER_PICTURE from "../assets/quiz/items/toilet-paper.webp?url";
+import PIZZA_PICTURE from "../assets/quiz/items/pizza.webp?url";
+import BREAD_PICTURE from "../assets/quiz/items/sakapain.webp?url";
+import POLA_PICTURE from "../assets/quiz/items/pola.webp?url";
+import ALU_PICTURE from "../assets/quiz/items/alu.webp?url";
+import GOB_PICTURE from "../assets/quiz/items/gobelet.webp?url";
+import GRENA_PICTURE from "../assets/quiz/items/grena.webp?url";
 
+import confetti from "canvas-confetti";
 import gsap from "gsap";
 
 // Answers possible values
@@ -27,28 +34,28 @@ const ANSWERS = {
 // Data structure representing the visual anwsers displayed to user
 const ANSWERS_DISPLAY = [
   {
-    title: "Conteneur<br/> vert",
+    title: "Déchets<br/> organiques",
     color: "#285c47",
     value: ANSWERS.CONTENEUR_VERT,
     picture: CONTENEUR_VERT_PICTURE,
     pictureHighlight: CONTENEUR_VERT_PICTURE_HIGHLIGHT,
   },
   {
-    title: "Conteneur<br/> jaune",
+    title: "Papier<br/> carton",
     color: "#917122",
     value: ANSWERS.CONTENEUR_JAUNE,
     picture: CONTENEUR_JAUNE_PICTURE,
     pictureHighlight: CONTENEUR_JAUNE_PICTURE_HIGHLIGHT,
   },
   {
-    title: "Sac<br/> jaune",
+    title: "Déchets<br/> résiduels",
     color: "#917122",
     value: ANSWERS.SAC_JAUNE,
     picture: SAC_JAUNE_PICTURE,
     pictureHighlight: SAC_JAUNE_PICTURE_HIGHLIGHT,
   },
   {
-    title: "Sac<br/> bleu",
+    title: "PMC",
     color: "#106bac",
     value: ANSWERS.SAC_BLEU,
     picture: SAC_BLEU_PICTURE,
@@ -61,56 +68,88 @@ const QUESTIONS = [
     title: "Un sac en plastique",
     answer: ANSWERS.SAC_BLEU,
     picture: PLASTIC_BAG_PICTURE,
-    feedback: {
-      correct: "Excellent !",
-      incorrect: "Oups...",
-    },
+    feedback: "Les sacs en plastique doivent être déposés dans le sac PMC.",
   },
   {
-    title: "Des emballages de bonbons",
-    answer: ANSWERS.SAC_BLEU,
-    picture: CANDY_WRAPPER_PICTURE,
-    feedback: {
-      correct: "Excellent !",
-      incorrect: "Oups...",
-    },
+    title: "Un carton de pizza souillé",
+    answer: ANSWERS.SAC_JAUNE,
+    picture: PIZZA_PICTURE,
+    feedback:
+      "Le carton de la boite de pizza est souvent souillé ou gras. La graisse nuit au recyclage du carton. Déposez-le dans la poubelle des déchets résiduels.",
   },
   {
     title: "Un rouleau de papier toilette",
     answer: ANSWERS.CONTENEUR_JAUNE,
     picture: TOILET_PAPER_PICTURE,
-    feedback: {
-      correct: "Excellent !",
-      incorrect: "Oups...",
-    },
+    feedback:
+      "Les rouleaux de papier toilette en carton doivent être déposés dans la papier - carton.",
+  },
+  {
+    title: "Un sac à pain",
+    answer: ANSWERS.CONTENEUR_JAUNE,
+    picture: BREAD_PICTURE,
+    // dans le conteneur vert des déchets organiques, en petits morceaux dans votre compost ou encore dans la poubelle des déchets résiduels
+    feedback:
+      "Les sacs vides ayant contenu du pain ou des viennoiseries vont dans le papier-carton.",
   },
   {
     title: "Des restes d'os de poulet",
-    answer: ANSWERS.SAC_JAUNE,
+    answer: ANSWERS.CONTENEUR_VERT,
     picture: CHICKEN_BONES_PICTURE,
-    feedback: {
-      correct: "Excellent !",
-      incorrect: "Oups...",
-    },
+    feedback:
+      "Les os de poulet sont des déchets organiques et peuvent être déposées dans le conteneur vert.",
   },
   {
     title: "Un emballage de café aluminium",
     answer: ANSWERS.SAC_JAUNE,
     picture: COFFEE_PICTURE,
-    feedback: {
-      correct: "Excellent !",
-      incorrect: "Oups...",
-    },
+    feedback:
+      "La majorité des sacs à café sont constitués d'une couche en aluminium et une couche en plastique. Ceux-ci sont encore à jeter dans les déchets résiduels",
+  },
+  {
+    title: "Papier photo / Polaroïds",
+    answer: ANSWERS.SAC_JAUNE,
+    picture: POLA_PICTURE,
+    feedback:
+      "Le papier photo ne peut pas être recyclé comme du papier ordinaire. Ne le jetez donc jamais avec le papier-carton, mais avec les déchets résiduels.",
+  },
+  {
+    title: "Papier aluminium",
+    answer: ANSWERS.SAC_JAUNE,
+    picture: ALU_PICTURE,
+    feedback:
+      "Un papier aluminium provenant d’un rouleau n’est pas un emballage et doit donc être jeté avec les déchets résiduels.",
+  },
+  {
+    title: "Gobelet en carton",
+    answer: ANSWERS.CONTENEUR_JAUNE,
+    picture: GOB_PICTURE,
+    feedback:
+      "Les gobelets en carton ou les cartons de pâtes vont avec le papier-carton une fois vidés, à condition de ne pas contenir des résidus de nourriture, et de n'être paraffiné qu'à l'intérieur.",
+  },
+  {
+    title: "Bouteille de sirop métallique",
+    answer: ANSWERS.SAC_BLEU,
+    picture: GRENA_PICTURE,
+    feedback:
+      "Les bouteilles métalliques pour grenadine et autres sirops , par exemple, peuvent être triées dans les PMC.",
   },
 ];
 
+const feedback = ref<null | {
+  title: string;
+  subtitle: string;
+  status: string;
+}>();
+
 import { Draggable } from "gsap/Draggable";
 import { SplitText } from "gsap/SplitText";
+import { CustomEase } from "gsap/CustomEase";
+import { CustomWiggle } from "gsap/CustomWiggle";
 import { onMounted, ref, watch } from "vue";
 import { audio } from "../audio";
 
-gsap.registerPlugin(Draggable);
-gsap.registerPlugin(SplitText);
+gsap.registerPlugin(Draggable, SplitText, CustomEase, CustomWiggle);
 
 const answersEls = ref<HTMLElement[]>([]);
 const questionEls = ref<HTMLElement[]>([]);
@@ -273,6 +312,21 @@ const setCardsStyle = (animate: boolean) => {
   });
 };
 
+const onFeedbackEnter = (el: Element, done: () => void) => {
+  let split = SplitText.create(el, {
+    type: "words",
+  });
+
+  gsap.from(split.words, {
+    y: 10,
+    stagger: 0.025,
+    opacity: 0,
+    ease: "elastic.out(2, 0.5)",
+    duration: 1,
+    onComplete: done,
+  });
+};
+
 const useDraggableCard = (draggableEl: HTMLElement) => {
   let resetCardTween: gsap.core.Tween;
 
@@ -363,6 +417,62 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
   const validateAnswer = () => {
     audio.play("shove");
 
+    if (
+      QUESTIONS[activeQuestionIndex.value].answer ===
+      highlightedAnswer.value?.getAttribute("data-answer-value")
+    ) {
+      feedback.value = {
+        title: "Exactement!",
+        subtitle: QUESTIONS[activeQuestionIndex.value].feedback,
+        status: "success",
+      };
+
+      const BCR = highlightedAnswer.value.getBoundingClientRect();
+
+      confetti({
+        startVelocity: Math.max(innerWidth, innerHeight) / 30,
+        scalar: 1.5,
+        particleCount: 200,
+        spread: 80,
+        origin: {
+          x: (BCR.x + BCR.width / 2) / innerWidth,
+          y: (BCR.y + BCR.height / 2) / innerHeight,
+        },
+        ticks: 50,
+      });
+
+      audio.play("success");
+      audio.play("cheer");
+
+      gsap.killTweensOf(highlightedAnswer.value);
+      gsap.from(highlightedAnswer.value, {
+        backgroundColor: "rgb(125 189 170)",
+      });
+    } else {
+      feedback.value = {
+        title: "Dommage...",
+        subtitle: QUESTIONS[activeQuestionIndex.value].feedback,
+        status: "error",
+      };
+
+      gsap.killTweensOf(".quiz");
+      gsap.to(".quiz", {
+        x: 10,
+        duration: 0.25,
+        ease: "wiggle({type:easeOut, wiggles:6})", //advanced
+      });
+
+      audio.play("error");
+      audio.play("aww");
+
+      if (highlightedAnswer.value) {
+        gsap.killTweensOf(highlightedAnswer.value);
+        gsap.from(highlightedAnswer.value, {
+          backgroundColor: "rgb(240 196 200)",
+        });
+      }
+    }
+
     highlightedAnswer.value = null;
 
     gsap.to(draggableEl, {
@@ -419,6 +529,7 @@ onMounted(() => {
       :key="answer.value"
       :class="['quiz__answer', answer.value]"
       ref="answersEls"
+      :data-answer-value="answer.value"
     >
       <div class="quiz__answer__picture-container">
         <img
@@ -467,6 +578,32 @@ onMounted(() => {
         <div v-html="question.title" class="question__title"></div>
       </div>
     </div>
+
+    <div class="quiz__footer">
+      <div :class="['quiz__footer__content', feedback?.status]">
+        <Transition :css="false" @enter="onFeedbackEnter">
+          <div
+            v-if="feedback?.title"
+            class="quiz__footer__title"
+            :key="`${feedback.title}-${feedback.subtitle}`"
+          >
+            {{ feedback.title }}
+          </div>
+        </Transition>
+        <Transition :css="false" @enter="onFeedbackEnter">
+          <div
+            v-if="feedback?.subtitle"
+            class="quiz__footer__subtitle"
+            :key="`${feedback.title}-${feedback.subtitle}`"
+          >
+            {{ feedback?.subtitle }}
+          </div>
+        </Transition>
+      </div>
+      <div class="quiz__footer__counter">
+        {{ activeQuestionIndex + 1 }}/{{ QUESTIONS.length }}
+      </div>
+    </div>
   </section>
 </template>
 
@@ -476,14 +613,13 @@ onMounted(() => {
 .quiz {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(2, 50vh);
+  grid-template-rows: repeat(2, 40svh) 20svh;
   width: 100%;
   max-width: 1280px;
-  background-color: var(--c-surface-accent);
-  border: 1px var(--c-stroke) solid;
+  border-top: 1px var(--c-stroke) solid;
 
   @media (min-width: 1000px) {
-    grid-template-rows: repeat(2, 40vh);
+    grid-template-rows: repeat(2, 40svh) auto;
   }
 }
 
@@ -497,9 +633,11 @@ onMounted(() => {
   font-family: var(--ff-alt);
   font-weight: 800;
   user-select: none;
+  background-color: var(--c-surface-accent);
+  border-left: 1px var(--c-stroke) solid;
 
   &:nth-child(even) {
-    border-left: 1px var(--c-stroke) solid;
+    border-right: 1px var(--c-stroke) solid;
 
     @media (min-width: 1000px) {
       flex-direction: row-reverse;
@@ -633,5 +771,68 @@ onMounted(() => {
   padding: 10px;
   font-size: fluid(15px, 18px);
   line-height: 1;
+}
+
+.quiz__footer {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto max-content;
+  grid-column: 1 / 3;
+  border: 1px var(--c-stroke) solid;
+  overflow: hidden;
+
+  @media (min-width: 1000px) {
+    align-content: center;
+    border-bottom-left-radius: 2rem;
+    border-bottom-right-radius: 2rem;
+  }
+}
+
+.quiz__footer__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-block: fluid(10px, 16px);
+  padding-inline: fluid(10px, 16px);
+
+  @media (min-width: 1000px) {
+    gap: 10px;
+    justify-content: center;
+  }
+
+  &.error {
+    color: #ce2f2f;
+    background-color: #d42d361c;
+  }
+}
+
+.quiz__footer__title {
+  line-height: 1;
+  font-size: fluid(16px, 40px);
+  font-family: var(--ff-alt);
+  font-weight: 800;
+}
+
+.quiz__footer__subtitle {
+  line-height: 1;
+  font-family: var(--ff-alt);
+}
+
+.quiz__footer__counter {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  font-size: fluid(16px, 60px);
+  font-family: var(--ff-alt);
+  font-weight: 800;
+  line-height: 1;
+  display: flex;
+
+  @media (min-width: 1000px) {
+    align-items: center;
+    padding: 1rem 2rem;
+    border-left: 1px var(--c-stroke) solid;
+  }
 }
 </style>

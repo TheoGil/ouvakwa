@@ -6,6 +6,7 @@
   --c-surface-default: #ffffff;
   --c-surface-accent: #f5f3ed;
   --c-stroke: #c9c7bb;
+  --c-text: #1b4031;
 }
 
 body {
@@ -18,6 +19,7 @@ body {
   place-items: center;
   height: 100vh;
   box-sizing: border-box;
+  color: var(--c-text);
 
   @media (min-width: 1000px) {
     padding: 20px;
