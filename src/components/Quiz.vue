@@ -830,6 +830,9 @@ onMounted(() => {
   display: flex;
 
   @media (min-width: 1000px) {
+    top: unset;
+    right: unset;
+    position: relative;
     align-items: center;
     padding: 1rem 2rem;
     border-left: 1px var(--c-stroke) solid;
