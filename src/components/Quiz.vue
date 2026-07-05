@@ -155,6 +155,7 @@ const answersEls = ref<HTMLElement[]>([]);
 const questionEls = ref<HTMLElement[]>([]);
 const activeQuestionIndex = ref(0);
 const highlightedAnswer = ref<HTMLElement | null>();
+const score = ref(0);
 
 const getClientXY = (e: PointerEvent | TouchEvent) => {
   if (e.type === "pointermove") {
@@ -200,6 +201,43 @@ watch(highlightedAnswer, (newValue, oldValue) => {
     });
   }
 });
+
+const end = () => {
+  audio.play("shove");
+
+  gsap.set(".results", {
+    display: "flex",
+  });
+
+  gsap.fromTo(
+    ".results",
+    {
+      opacity: 0,
+      y: 100,
+      rotate: -25,
+    },
+    {
+      opacity: 1,
+      y: 0,
+      rotate: 5,
+      ease: "elastic.out(1, 0.75)",
+    },
+  );
+
+  let split = SplitText.create(".results", {
+    type: "words",
+  });
+  gsap.from(split.words, {
+    y: 10,
+    stagger: 0.05,
+    opacity: 0,
+    ease: "elastic.out(1, 0.75)",
+  });
+
+  gsap.to(".quiz", {
+    opacity: 0.5,
+  });
+};
 
 function pointInRectangle(
   px: number,
@@ -421,6 +459,8 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
       QUESTIONS[activeQuestionIndex.value].answer ===
       highlightedAnswer.value?.getAttribute("data-answer-value")
     ) {
+      score.value++;
+
       feedback.value = {
         title: "Exactement!",
         subtitle: QUESTIONS[activeQuestionIndex.value].feedback,
@@ -485,6 +525,8 @@ const useDraggableCard = (draggableEl: HTMLElement) => {
     if (activeQuestionIndex.value < QUESTIONS.length - 1) {
       activeQuestionIndex.value++;
       useDraggableCard(questionEls.value[activeQuestionIndex.value]);
+    } else {
+      end();
     }
   };
 
@@ -605,6 +647,16 @@ onMounted(() => {
       </div>
     </div>
   </section>
+
+  <div class="results">
+    <div class="results__title">Ton score</div>
+    <div class="results__value">{{ score }}/{{ QUESTIONS.length }}</div>
+    <div class="results__feedback" v-if="score < 5">Pas fou fou dingue...</div>
+    <div class="results__feedback" v-if="score >= 5 && score < 8">
+      Pas mal !
+    </div>
+    <div class="results__feedback" v-if="score >= 8">Excellent !</div>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -837,5 +889,42 @@ onMounted(() => {
     padding: 1rem 2rem;
     border-left: 1px var(--c-stroke) solid;
   }
+}
+
+.results {
+  display: none;
+  opacity: 0;
+  position: absolute;
+  align-items: center;
+  flex-direction: column;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--c-surface-default);
+  // width: 100%;
+  // max-width: 500px;
+  border-radius: 20px;
+  padding: 60px;
+  gap: 20px;
+  text-align: center;
+  box-shadow: 0 0 50px var(--c-stroke);
+}
+
+.results__title {
+  line-height: 1;
+  font-size: fluid(40px, 60px);
+  font-family: var(--ff-alt);
+  font-weight: 800;
+}
+
+.results__value {
+  line-height: 1;
+  font-size: fluid(40px, 60px);
+  font-family: var(--ff-alt);
+  font-weight: 800;
+}
+.results__feedback {
+  line-height: 1;
+  font-family: var(--ff-alt);
 }
 </style>
